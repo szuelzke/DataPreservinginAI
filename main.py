@@ -88,9 +88,7 @@ def anonymize_data(input_data):
     # Replace this with your anonymization logic
     return input_data
 
-def evaluate_anonymized_data(original_data, anonymized_data):
-
-    weights = {'uniqueness': 0.3, 'distribution': 0.5, 'semantic': 0.2}
+def evaluate_anonymized_data(original_data, anonymized_data, weights):
     overall_score, uniqueness_score, distribution_score, semantic_score = calculate_score(original_data, anonymized_data, weights)
 
     return overall_score, uniqueness_score, distribution_score, semantic_score
@@ -117,6 +115,24 @@ def update_anonymized_data_frame():
     anonymized_data_frame_canvas.update_idletasks()
     anonymized_data_frame_canvas.config(scrollregion=anonymized_data_frame_canvas.bbox("all"))
 
+# Function to update evaluation statistics
+def update_evaluation_statistics():
+    # Get weights from entry fields
+    weights = {
+        'uniqueness': float(uniqueness_weight_entry.get()),
+        'distribution': float(distribution_weight_entry.get()),
+        'semantic': float(semantic_weight_entry.get())
+    }
+    
+    # Evaluate anonymized data using the weights
+    overall_score, uniqueness_score, distribution_score, semantic_score = evaluate_anonymized_data(df, df.copy(), weights)
+    
+    # Update labels for evaluation statistics
+    uniqueness_score_label.config(text="Uniqueness Score: {:.2f}".format(uniqueness_score))
+    distribution_score_label.config(text="Distribution Score: {:.2f}".format(distribution_score))
+    semantic_score_label.config(text="Semantic Score: {:.2f}".format(semantic_score))
+    overall_score_label.config(text="Overall Score: {:.2f}".format(overall_score))
+    
 # Create GUI window
 window = tk.Tk()
 window.title("Data Anonymization and Evaluation")
@@ -157,21 +173,38 @@ anonymized_data_frame_canvas.create_window((0, 0), window=anonymized_data_frame_
 update_original_data_frame()
 update_anonymized_data_frame()
 
-# Evaluate anonymized data
-overall_score, uniqueness_score, distribution_score, semantic_score = evaluate_anonymized_data(df, df.copy())
+# Add labels and entry fields for evaluation statistics
+uniqueness_weight_label = tk.Label(evaluation_frame, text="Uniqueness Weight:")
+uniqueness_weight_label.grid(row=0, column=0, padx=5, pady=2)
+uniqueness_weight_entry = tk.Entry(evaluation_frame)
+uniqueness_weight_entry.grid(row=0, column=1, padx=5, pady=2)
+uniqueness_weight_entry.insert(tk.END, "0.3")
 
-# Add labels for evaluation statistics
+distribution_weight_label = tk.Label(evaluation_frame, text="Distribution Weight:")
+distribution_weight_label.grid(row=1, column=0, padx=5, pady=2)
+distribution_weight_entry = tk.Entry(evaluation_frame)
+distribution_weight_entry.grid(row=1, column=1, padx=5, pady=2)
+distribution_weight_entry.insert(tk.END, "0.5")
 
-uniqueness_score_label = tk.Label(evaluation_frame, text="Uniqueness Score: {:.2f}".format(uniqueness_score))
-uniqueness_score_label.grid(row=0, column=0, padx=5, pady=2)
-distribution_score_label = tk.Label(evaluation_frame, text="Distribution Score: {:.2f}".format(distribution_score))
-distribution_score_label.grid(row=1, column=0, padx=5, pady=2)
-semantic_score_label = tk.Label(evaluation_frame, text="Semantic Score: {:.2f}".format(semantic_score))
-semantic_score_label.grid(row=2, column=0, padx=5, pady=2)
-overall_score_label = tk.Label(evaluation_frame, text="Overall Score: {:.2f}".format(overall_score))
-overall_score_label.grid(row=3, column=0, padx=5, pady=2)
+semantic_weight_label = tk.Label(evaluation_frame, text="Semantic Weight:")
+semantic_weight_label.grid(row=2, column=0, padx=5, pady=2)
+semantic_weight_entry = tk.Entry(evaluation_frame)
+semantic_weight_entry.grid(row=2, column=1, padx=5, pady=2)
+semantic_weight_entry.insert(tk.END, "0.2")
+
+update_button = tk.Button(evaluation_frame, text="Update Weights", command=update_evaluation_statistics)
+update_button.grid(row=3, column=0, columnspan=2, padx=5, pady=5)
+
+uniqueness_score_label = tk.Label(evaluation_frame, text="Uniqueness Score: ")
+uniqueness_score_label.grid(row=4, column=0, padx=5, pady=2)
+distribution_score_label = tk.Label(evaluation_frame, text="Distribution Score: ")
+distribution_score_label.grid(row=5, column=0, padx=5, pady=2)
+semantic_score_label = tk.Label(evaluation_frame, text="Semantic Score: ")
+semantic_score_label.grid(row=6, column=0, padx=5, pady=2)
+overall_score_label = tk.Label(evaluation_frame, text="Overall Score: ")
+overall_score_label.grid(row=7, column=0, padx=5, pady=2)
 gui_load_time_label = tk.Label(evaluation_frame, text=f"GUI Load Time: {time.time() - start_gui_time:.2f} seconds")
-gui_load_time_label.grid(row=4, column=0, padx=5, pady=2)
+gui_load_time_label.grid(row=8, column=0, padx=5, pady=2)
 
 # Run the GUI
 window.mainloop()
