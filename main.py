@@ -85,25 +85,31 @@ for column in df.select_dtypes(include=['object']).columns:
 
 # Define your anonymization method (placeholder)
 def anonymize_data(input_data):
-    # Convert the NumPy array to a pandas DataFrame
-    input_df = pd.DataFrame(input_data, columns=df.columns)
-    
-    # Deep copy the input data to avoid modifying the original DataFrame
-    anonymized_data = input_df.copy()
-    
-    # Retrieve the index of the 'Name' column
-    name_index = input_df.columns.get_loc('Name')
-    
-    # Placeholder values for anonymization
-    placeholder_values = [f"Person_{i+1}" for i in range(len(anonymized_data))]
-    
-    # Convert the DataFrame to object type to avoid dtype issues
-    anonymized_data = anonymized_data.astype(object)
-    
-    # Assign the placeholder values to the 'Name' column
-    anonymized_data.iloc[:, name_index] = pd.Series(placeholder_values, dtype=str)
-    
-    return anonymized_data
+  # Convert the NumPy array to a pandas DataFrame
+  input_df = pd.DataFrame(input_data, columns=df.columns)
+
+  # Deep copy the input data to avoid modifying the original DataFrame
+  anonymized_data = input_df.copy()
+
+  # Retrieve the index of the 'Name' and 'Age' columns
+  name_index = input_df.columns.get_loc('Name')
+  age_index = input_df.columns.get_loc('Age')
+
+  # Placeholder values for anonymization
+  placeholder_values = [f"Person_{i+1}" for i in range(len(anonymized_data))]
+
+  # Convert the DataFrame to object type to avoid dtype issues
+  anonymized_data = anonymized_data.astype(object)
+
+  # Assign the placeholder values to the 'Name' column
+  anonymized_data.iloc[:, name_index] = pd.Series(placeholder_values, dtype=str)
+
+  # Anonymize the 'Age' column
+  age_ranges = [(0, 10), (11, 20), (21, 30), (31, 40), (41, 50), (51, 60), (61, 70), (71, 80), (81, 90), (91, 100)]
+  for i, (start, end) in enumerate(age_ranges, start=1):
+      anonymized_data.loc[(anonymized_data['Age'] >= start) & (anonymized_data['Age'] <= end), 'Age'] = i
+
+  return anonymized_data
 
 
 def evaluate_anonymized_data(original_data, anonymized_data, weights):
@@ -226,4 +232,3 @@ gui_load_time_label.grid(row=8, column=0, padx=5, pady=2)
 
 # Run the GUI
 window.mainloop()
-
