@@ -45,6 +45,16 @@ def anonymize_data(input_data):
   # Anonymize the 'Date of Admission' column (value is now just the year)
   anonymized_data.iloc[:, admission_date_index] = anonymized_data.iloc[:, admission_date_index].apply(lambda x: str(pd.to_datetime(x).year) if pd.notnull(x) else '')
 
+  # Encode categorical variables: Doctor, Hospital, Insurance Provider
+  categorical_columns = ['Doctor', 'Hospital', 'Insurance Provider']
+  for column in categorical_columns:
+        label_encoder = LabelEncoder()
+        anonymized_data[column] = label_encoder.fit_transform(anonymized_data[column])
+
+  
+  # Convert 'Billing Amount' column to numeric and round to whole number
+  anonymized_data['Billing Amount'] = pd.to_numeric(anonymized_data['Billing Amount'], errors='coerce').round()
+
   return anonymized_data
 
 # Define evaluation and similarity functions
@@ -151,6 +161,7 @@ def update_original_data_frame():
 
 def update_anonymized_data_frame():
     anonymized_data = anonymize_data(df.head(100))
+    #anonymized_data = df.head(100)
     for i, column in enumerate(anonymized_data.columns):
         tk.Label(anonymized_data_frame_inner, text=column).grid(row=0, column=i, padx=5, pady=2)
     for i, row in anonymized_data.iterrows():
@@ -173,6 +184,7 @@ def update_evaluation_statistics():
 
     # Anonymize the original data
     anonymized_data = anonymize_data(df.head(100))
+    #anonymized_data = df.head(100)
 
     # Evaluate anonymized data using the weights
     overall_score, uniqueness_score, distribution_score, semantic_score = evaluate_anonymized_data(df, anonymized_data, weights)
