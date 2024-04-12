@@ -1,3 +1,4 @@
+
 import numpy as np
 import pandas as pd
 import tkinter as tk
@@ -11,18 +12,18 @@ import time
 def calculate_score(original_data, anonymized_data, weights):
     # Calculate uniqueness score
     uniqueness_score = calculate_uniqueness_score(original_data, anonymized_data)
-    
+
     # Calculate distribution score
     distribution_score = calculate_distribution_score(original_data, anonymized_data)
-    
+
     # Calculate semantic preservation score
     semantic_score = calculate_semantic_score(original_data, anonymized_data)
-    
+
     # Combine scores using weights
     overall_score = (weights['uniqueness'] * uniqueness_score +
                      weights['distribution'] * distribution_score +
                      weights['semantic'] * semantic_score)
-    
+
     return overall_score, uniqueness_score, distribution_score, semantic_score
 
 # Uniqueness Score: Measures how many unique values are present in the anonymized dataset compared to the original dataset. 
@@ -32,7 +33,7 @@ def calculate_uniqueness_score(original_data, anonymized_data):
     for column in original_data.columns:
         unique_values_ratio = len(anonymized_data[column].unique()) / len(original_data[column].unique())
         unique_values_ratios.append(unique_values_ratio)
-    
+
     # Average uniqueness score across columns
     uniqueness_score = sum(unique_values_ratios) / len(unique_values_ratios)
     return uniqueness_score
@@ -47,7 +48,7 @@ def calculate_distribution_score(original_data, anonymized_data):
                                   abs(anonymized_data[column].median() - original_data[column].median()) + \
                                   abs(anonymized_data[column].std() - original_data[column].std())
         distribution_differences.append(distribution_difference)
-    
+
     # Average distribution difference across numeric columns
     distribution_score = sum(distribution_differences) / len(distribution_differences)
     return distribution_score
@@ -57,17 +58,17 @@ def calculate_distribution_score(original_data, anonymized_data):
 def calculate_semantic_score(original_data, anonymized_data):
     total_score = 0
     total_values = 0
-    
+
     for column in original_data.columns:
         original_values = original_data[column]
         anonymized_values = anonymized_data[column]
         total_values += len(original_values)
         total_score += sum(original_values == anonymized_values)
-    
+
     semantic_score = total_score / total_values if total_values != 0 else 0
     return semantic_score
 
- 
+
 # ----
 
 # Record the start time before creating the GUI window
@@ -84,9 +85,26 @@ for column in df.select_dtypes(include=['object']).columns:
 
 # Define your anonymization method (placeholder)
 def anonymize_data(input_data):
-    # Placeholder anonymization method
-    # Replace this with your anonymization logic
-    return input_data
+    # Convert the NumPy array to a pandas DataFrame
+    input_df = pd.DataFrame(input_data, columns=df.columns)
+    
+    # Deep copy the input data to avoid modifying the original DataFrame
+    anonymized_data = input_df.copy()
+    
+    # Retrieve the index of the 'Name' column
+    name_index = input_df.columns.get_loc('Name')
+    
+    # Placeholder values for anonymization
+    placeholder_values = [f"Person_{i+1}" for i in range(len(anonymized_data))]
+    
+    # Convert the DataFrame to object type to avoid dtype issues
+    anonymized_data = anonymized_data.astype(object)
+    
+    # Assign the placeholder values to the 'Name' column
+    anonymized_data.iloc[:, name_index] = pd.Series(placeholder_values, dtype=str)
+    
+    return anonymized_data
+
 
 def evaluate_anonymized_data(original_data, anonymized_data, weights):
     overall_score, uniqueness_score, distribution_score, semantic_score = calculate_score(original_data, anonymized_data, weights)
@@ -105,15 +123,15 @@ def update_original_data_frame():
 
 # Function to update anonymized data frame
 def update_anonymized_data_frame():
-    # Anonymize the original dataset
-    anonymized_data = anonymize_data(df.values[:100])  # Limiting to 100 rows for faster processing
-    for i, column in enumerate(df.columns):
-        tk.Label(anonymized_data_frame_inner, text=column).grid(row=0, column=i, padx=5, pady=2)
-    for i, row in enumerate(anonymized_data):
-        for j, value in enumerate(row):
-            tk.Label(anonymized_data_frame_inner, text=value).grid(row=i+1, column=j, padx=5, pady=2)
-    anonymized_data_frame_canvas.update_idletasks()
-    anonymized_data_frame_canvas.config(scrollregion=anonymized_data_frame_canvas.bbox("all"))
+  # Anonymize the original dataset
+  anonymized_data = anonymize_data(df.head(100))  # Limiting to 100 rows for faster processing
+  for i, column in enumerate(anonymized_data.columns):
+      tk.Label(anonymized_data_frame_inner, text=column).grid(row=0, column=i, padx=5, pady=2)
+  for i, row in anonymized_data.iterrows():
+      for j, value in enumerate(row):
+          tk.Label(anonymized_data_frame_inner, text=value).grid(row=i+1, column=j, padx=5, pady=2)
+  anonymized_data_frame_canvas.update_idletasks()
+  anonymized_data_frame_canvas.config(scrollregion=anonymized_data_frame_canvas.bbox("all"))
 
 # Function to update evaluation statistics
 def update_evaluation_statistics():
@@ -123,16 +141,16 @@ def update_evaluation_statistics():
         'distribution': float(distribution_weight_entry.get()),
         'semantic': float(semantic_weight_entry.get())
     }
-    
+
     # Evaluate anonymized data using the weights
     overall_score, uniqueness_score, distribution_score, semantic_score = evaluate_anonymized_data(df, df.copy(), weights)
-    
+
     # Update labels for evaluation statistics
     uniqueness_score_label.config(text="Uniqueness Score: {:.2f}".format(uniqueness_score))
     distribution_score_label.config(text="Distribution Score: {:.2f}".format(distribution_score))
     semantic_score_label.config(text="Semantic Score: {:.2f}".format(semantic_score))
     overall_score_label.config(text="Overall Score: {:.2f}".format(overall_score))
-    
+
 # Create GUI window
 window = tk.Tk()
 window.title("Data Anonymization and Evaluation")
@@ -208,3 +226,4 @@ gui_load_time_label.grid(row=8, column=0, padx=5, pady=2)
 
 # Run the GUI
 window.mainloop()
+
